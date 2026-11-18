@@ -39,23 +39,28 @@ class _ChatPageState extends State<ChatPage> {
   String? _error;
   String? _lastFailedMessage;
   bool _sending = false;
-  Future<void> _send() async {
-    final text = _controller.text.trim();
+ Future<void> _send({String? retryText}) async {
+  final text = retryText ?? _controller.text.trim();
     if (text.isEmpty || _sending) return;
 
     setState(() {
     _sending = true;
     _error = null;
-      _messages.add(ChatMessage(text: text, isUser: true));
+      if (retryText == null) {
+  _messages.add(ChatMessage(text: text, isUser: true));
+}
     });
-    _controller.clear();
+    if (retryText == null) {
+  _controller.clear();
+}
     try {
   await Future<void>.delayed(const Duration(seconds: 1));
   if (!mounted) return;
 
   // Local simulation: entering 500 triggers a server error.
   // No real API is called.
-  if (text == '500') {
+  // Simulate recovery when retrying the failed request.
+if (text == '500' && retryText == null) {
     throw Exception('500: 서버 오류가 발생했습니다. (모의 오류)');
   }
 
@@ -150,9 +155,21 @@ class _ChatPageState extends State<ChatPage> {
             color: Theme.of(context).colorScheme.errorContainer,
             borderRadius: BorderRadius.circular(14),
           ),
-          child: Text(
-            '$_error\n실패한 메시지: ${_lastFailedMessage ?? ''}',
-          ),
+          child: Column(
+  mainAxisSize: MainAxisSize.min,
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    Text('$_error\n실패한 메시지: ${_lastFailedMessage ?? ''}'),
+    const SizedBox(height: 8),
+    TextButton.icon(
+      onPressed: _sending || _lastFailedMessage == null
+          ? null
+          : () => _send(retryText: _lastFailedMessage),
+      icon: const Icon(Icons.refresh),
+      label: const Text('다시 시도'),
+    ),
+  ],
+),
         ),
 ),
             Padding(
