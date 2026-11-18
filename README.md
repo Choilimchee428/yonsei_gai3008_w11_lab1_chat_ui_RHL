@@ -75,3 +75,10 @@ test/widget_test.dart  ← 앱이 뜨는지 확인하는 스모크 테스트
 
 - `flutter analyze`
 - `flutter test`
+### 빈 상태
+![빈 상태 화면](screenshots/empty.png)
+
+### 키보드 레이아웃 검증
+자동 테스트에서 화면 하단 300px의 키보드 영역을 모의하여
+입력창과 전송 버튼의 위치 및 메시지 전송을 확인했습니다.
+실제 모바일 기기에서는 검증하지 않았습니다.

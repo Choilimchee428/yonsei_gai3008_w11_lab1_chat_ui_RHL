@@ -109,10 +109,10 @@ if (mockErrors.containsKey(text) &&
 
   /// 실습용 가짜 대화 — API를 붙이기 전까지 이 목록으로 화면을 만든다.
   final List<ChatMessage> _messages = [
-    ChatMessage(text: '오늘 뭐 배워?', isUser: true),
-    ChatMessage(text: 'AI 챗봇에 움직이는 응답을 붙입니다.', isUser: false),
-    ChatMessage(text: '타이핑 점은 왜 필요해요?', isUser: true),
-    ChatMessage(text: '응답이 1초를 넘으면 앱이 멈춘 것처럼 보이기 때문입니다.', isUser: false),
+    // ChatMessage(text: '오늘 뭐 배워?', isUser: true),
+    // ChatMessage(text: 'AI 챗봇에 움직이는 응답을 붙입니다.', isUser: false),
+    // ChatMessage(text: '타이핑 점은 왜 필요해요?', isUser: true),
+    // ChatMessage(text: '응답이 1초를 넘으면 앱이 멈춘 것처럼 보이기 때문입니다.', isUser: false),
   ];
 
   @override
