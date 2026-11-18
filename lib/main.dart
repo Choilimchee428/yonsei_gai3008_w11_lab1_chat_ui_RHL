@@ -36,15 +36,51 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final _controller = TextEditingController();
-
-  void _send() {
+  String? _error;
+  String? _lastFailedMessage;
+  bool _sending = false;
+  Future<void> _send() async {
     final text = _controller.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty || _sending) return;
 
     setState(() {
+    _sending = true;
+    _error = null;
       _messages.add(ChatMessage(text: text, isUser: true));
     });
     _controller.clear();
+    try {
+  await Future<void>.delayed(const Duration(seconds: 1));
+  if (!mounted) return;
+
+  // Local simulation: entering 500 triggers a server error.
+  // No real API is called.
+  if (text == '500') {
+    throw Exception('500: 서버 오류가 발생했습니다. (모의 오류)');
+  }
+
+  setState(() {
+    _messages.add(
+      const ChatMessage(
+        text: '메시지를 받았습니다. (로컬 모의 응답)',
+        isUser: false,
+      ),
+    );
+  });
+} catch (e) {
+  if (!mounted) return;
+
+  setState(() {
+    _error = e.toString();
+    _lastFailedMessage = text;
+  });
+} finally {
+  if (mounted) {
+    setState(() {
+      _sending = false;
+    });
+  }
+}
   }
 
   @override
@@ -101,6 +137,24 @@ class _ChatPageState extends State<ChatPage> {
             // ─────────────────────────────────────────────────────────
             // ✅ 할 일 3 — 입력창 (TextField + 전송 버튼)
             // ─────────────────────────────────────────────────────────
+            AnimatedSwitcher(
+  duration: const Duration(milliseconds: 250),
+  child: _error == null
+      ? const SizedBox.shrink(key: ValueKey('no-error'))
+      : Container(
+          key: ValueKey(_error),
+          width: double.infinity,
+          margin: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.errorContainer,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Text(
+            '$_error\n실패한 메시지: ${_lastFailedMessage ?? ''}',
+          ),
+        ),
+),
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
               child: Row(
