@@ -39,12 +39,14 @@ class _ChatPageState extends State<ChatPage> {
   String? _error;
   String? _lastFailedMessage;
   bool _sending = false;
+  int _retryCount = 0;
  Future<void> _send({String? retryText}) async {
   final text = retryText ?? _controller.text.trim();
     if (text.isEmpty || _sending) return;
 
     setState(() {
     _sending = true;
+    _retryCount = retryText == null ? 0 : _retryCount + 1;
     _error = null;
       if (retryText == null) {
   _messages.add(ChatMessage(text: text, isUser: true));
@@ -54,15 +56,26 @@ class _ChatPageState extends State<ChatPage> {
   _controller.clear();
 }
     try {
-  await Future<void>.delayed(const Duration(seconds: 1));
-  if (!mounted) return;
+  final waitSeconds = text == '429' && retryText != null
+    ? (_retryCount == 1 ? 1 : 2)
+    : 1;
 
-  // Local simulation: entering 500 triggers a server error.
-  // No real API is called.
-  // Simulate recovery when retrying the failed request.
-if (text == '500' && retryText == null) {
-    throw Exception('500: 서버 오류가 발생했습니다. (모의 오류)');
-  }
+await Future<void>.delayed(Duration(seconds: waitSeconds));
+if (!mounted) return;
+
+const mockErrors = {
+  '401': '401: 인증에 실패했습니다. (모의 오류)',
+  '429': '429: 요청이 너무 많습니다. (모의 오류)',
+  '500': '500: 서버 오류가 발생했습니다. (모의 오류)',
+  'timeout': 'Timeout: 응답 시간이 초과되었습니다. (모의 오류)',
+};
+
+// For 429, the first retry fails and the second retry succeeds.
+// Other simulated errors recover on the first retry.
+if (mockErrors.containsKey(text) &&
+    (retryText == null || (text == '429' && _retryCount < 2))) {
+  throw Exception(mockErrors[text]!);
+}
 
   setState(() {
     _messages.add(
